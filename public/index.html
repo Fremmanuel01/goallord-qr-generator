@@ -7,6 +7,8 @@
 
     <!-- QR Code Generator Library (MIT) -->
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 
     <style>
         /* ============================================================
@@ -452,6 +454,103 @@
             background: var(--gl-primary-hover);
         }
 
+        /* ── Download Dropdown ────────────────────────── */
+        .gl-download-group {
+            flex: 1;
+            display: flex;
+            position: relative;
+        }
+
+        .gl-download-group .gl-action-btn:first-child {
+            flex: 1;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: none;
+        }
+
+        .gl-download-toggle {
+            padding: 12px 10px;
+            border: 1.5px solid var(--gl-primary);
+            border-left: 1px solid rgba(255,255,255,0.3);
+            border-radius: 0 10px 10px 0;
+            background: var(--gl-primary);
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .gl-download-toggle:hover {
+            background: var(--gl-primary-hover);
+        }
+
+        .gl-download-toggle:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .gl-download-menu {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: var(--gl-card);
+            border: 1px solid var(--gl-border);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .gl-download-menu.open {
+            display: block;
+        }
+
+        .gl-download-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 11px 16px;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: var(--gl-font);
+            color: var(--gl-text);
+            cursor: pointer;
+            transition: background-color 0.15s;
+            text-align: left;
+        }
+
+        .gl-download-option:hover {
+            background: var(--gl-primary-light);
+            color: var(--gl-primary);
+        }
+
+        .gl-download-option + .gl-download-option {
+            border-top: 1px solid var(--gl-border);
+        }
+
+        .gl-format-tag {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #f0f0f0;
+            color: var(--gl-muted);
+            letter-spacing: 0.3px;
+            min-width: 34px;
+            text-align: center;
+        }
+
+        .gl-download-option:hover .gl-format-tag {
+            background: rgba(42,127,127,0.12);
+            color: var(--gl-primary);
+        }
+
         /* Toast */
         .gl-toast {
             position: fixed;
@@ -652,10 +751,29 @@
                     </div>
 
                     <div class="gl-actions">
-                        <button type="button" id="downloadBtn" class="gl-action-btn gl-primary-btn" disabled>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            Download PNG
-                        </button>
+                        <div class="gl-download-group">
+                            <button type="button" id="downloadBtn" class="gl-action-btn gl-primary-btn" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Download
+                            </button>
+                            <button type="button" id="downloadToggle" class="gl-download-toggle" disabled>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div class="gl-download-menu" id="downloadMenu">
+                                <button type="button" class="gl-download-option" data-format="png">
+                                    <span class="gl-format-tag">PNG</span> Raster image (best for sharing)
+                                </button>
+                                <button type="button" class="gl-download-option" data-format="jpg">
+                                    <span class="gl-format-tag">JPG</span> Compressed image (smaller file)
+                                </button>
+                                <button type="button" class="gl-download-option" data-format="svg">
+                                    <span class="gl-format-tag">SVG</span> Vector graphic (scalable)
+                                </button>
+                                <button type="button" class="gl-download-option" data-format="pdf">
+                                    <span class="gl-format-tag">PDF</span> Document (print-ready)
+                                </button>
+                            </div>
+                        </div>
                         <button type="button" id="copyBtn" class="gl-action-btn" disabled>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                             Copy
@@ -702,6 +820,8 @@
         const canvasWrap    = document.getElementById('canvasWrap');
         const placeholder   = document.getElementById('placeholder');
         const downloadBtn   = document.getElementById('downloadBtn');
+        const downloadToggle = document.getElementById('downloadToggle');
+        const downloadMenu  = document.getElementById('downloadMenu');
         const copyBtn       = document.getElementById('copyBtn');
         const toast         = document.getElementById('toast');
 
@@ -822,6 +942,16 @@
             const fg       = fgColor.value;
             const bg       = bgColor.value;
 
+            // Store module data for SVG export
+            var modules = [];
+            for (var r = 0; r < modCount; r++) {
+                modules[r] = [];
+                for (var c = 0; c < modCount; c++) {
+                    modules[r][c] = qr.isDark(r, c);
+                }
+            }
+            lastQrData = { modules: modules, modCount: modCount, fg: fg, bg: bg };
+
             canvas.width  = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
@@ -868,8 +998,9 @@
             placeholder.style.display = 'none';
             canvasWrap.classList.add('has-qr');
 
-            downloadBtn.disabled = false;
-            copyBtn.disabled     = false;
+            downloadBtn.disabled    = false;
+            downloadToggle.disabled = false;
+            copyBtn.disabled        = false;
 
             showToast('QR code generated!');
         }
@@ -889,14 +1020,108 @@
             ctx.closePath();
         }
 
-        /* ── Download ─────────────────────── */
-        downloadBtn.addEventListener('click', function () {
-            const link = document.createElement('a');
-            link.download = 'qrcode.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            showToast('QR code downloaded!');
+        /* ── Download Menu ────────────────── */
+        let lastQrData = null; // store QR data for SVG generation
+
+        downloadToggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            downloadMenu.classList.toggle('open');
         });
+
+        // Default download button = PNG
+        downloadBtn.addEventListener('click', function () {
+            downloadAs('png');
+        });
+
+        // Menu options
+        downloadMenu.addEventListener('click', function (e) {
+            const option = e.target.closest('.gl-download-option');
+            if (!option) return;
+            downloadAs(option.dataset.format);
+            downloadMenu.classList.remove('open');
+        });
+
+        // Close menu on outside click
+        document.addEventListener('click', function () {
+            downloadMenu.classList.remove('open');
+        });
+
+        function downloadAs(format) {
+            const link = document.createElement('a');
+
+            switch (format) {
+                case 'png':
+                    link.download = 'qrcode.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    break;
+
+                case 'jpg':
+                    // Create temp canvas with white bg (JPG has no transparency)
+                    var tmpCanvas = document.createElement('canvas');
+                    tmpCanvas.width = canvas.width;
+                    tmpCanvas.height = canvas.height;
+                    var tmpCtx = tmpCanvas.getContext('2d');
+                    tmpCtx.fillStyle = '#ffffff';
+                    tmpCtx.fillRect(0, 0, tmpCanvas.width, tmpCanvas.height);
+                    tmpCtx.drawImage(canvas, 0, 0);
+                    link.download = 'qrcode.jpg';
+                    link.href = tmpCanvas.toDataURL('image/jpeg', 0.95);
+                    link.click();
+                    break;
+
+                case 'svg':
+                    var svgStr = generateSVG();
+                    var blob = new Blob([svgStr], { type: 'image/svg+xml' });
+                    link.download = 'qrcode.svg';
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    setTimeout(function () { URL.revokeObjectURL(link.href); }, 1000);
+                    break;
+
+                case 'pdf':
+                    generatePDF();
+                    return; // PDF handles its own save
+            }
+
+            showToast('Downloaded as ' + format.toUpperCase() + '!');
+        }
+
+        /* ── SVG Generation ──────────────── */
+        function generateSVG() {
+            if (!lastQrData) return '';
+            var d = lastQrData;
+            var size = parseInt(qrSize.value, 10);
+            var cellSize = size / d.modCount;
+
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">';
+            svg += '<rect width="' + size + '" height="' + size + '" fill="' + d.bg + '"/>';
+
+            for (var row = 0; row < d.modCount; row++) {
+                for (var col = 0; col < d.modCount; col++) {
+                    if (d.modules[row][col]) {
+                        svg += '<rect x="' + (col * cellSize) + '" y="' + (row * cellSize) + '" width="' + Math.ceil(cellSize) + '" height="' + Math.ceil(cellSize) + '" fill="' + d.fg + '"/>';
+                    }
+                }
+            }
+            svg += '</svg>';
+            return svg;
+        }
+
+        /* ── PDF Generation ──────────────── */
+        function generatePDF() {
+            var jsPDF = window.jspdf.jsPDF;
+            var size = parseInt(qrSize.value, 10);
+            // PDF in mm, use a square page that fits the QR
+            var pageMM = Math.max(size / 3, 80); // at least 80mm
+            var doc = new jsPDF({ unit: 'mm', format: [pageMM, pageMM] });
+            var imgData = canvas.toDataURL('image/png');
+            var margin = 10;
+            var qrMM = pageMM - margin * 2;
+            doc.addImage(imgData, 'PNG', margin, margin, qrMM, qrMM);
+            doc.save('qrcode.pdf');
+            showToast('Downloaded as PDF!');
+        }
 
         /* ── Copy to clipboard ────────────── */
         copyBtn.addEventListener('click', function () {
