@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "qr-generator",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "/Users/emmanuelnwabufo/plugins/goallord-qr-generator", "-l", "3847"],
+      "port": 3847
+    }
+  ]
+}

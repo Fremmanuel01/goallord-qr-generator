@@ -1,0 +1,19 @@
+{
+  "name": "goallord-qr-generator",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": ["qr-code", "generator"],
+  "author": "GoalLord",
+  "license": "ISC",
+  "description": "A sleek QR code generator with custom colors and logo support",
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoalLord QR Code Generator</title>
+
+    <!-- QR Code Generator Library (MIT) -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
+    <style>
+        /* ============================================================
+           GoalLord QR Code Generator  –  Styles
+           ============================================================ */
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --gl-primary: #2a7f7f;
+            --gl-primary-light: #e8f4f4;
+            --gl-primary-hover: #237070;
+            --gl-dark: #1a1a2e;
+            --gl-text: #3d3d3d;
+            --gl-muted: #888;
+            --gl-border: #e8e8e8;
+            --gl-bg: #f5f6f8;
+            --gl-card: #ffffff;
+            --gl-radius: 16px;
+            --gl-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+            --gl-serif: Georgia, "Times New Roman", Times, serif;
+        }
+
+        body {
+            font-family: var(--gl-font);
+            background: var(--gl-bg);
+            color: var(--gl-text);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Header ───────────────────────────────────── */
+        .gl-header {
+            text-align: center;
+            padding: 48px 20px 32px;
+        }
+
+        .gl-header h1 {
+            font-family: var(--gl-serif);
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--gl-dark);
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .gl-header h1 span {
+            color: var(--gl-primary);
+        }
+
+        .gl-header p {
+            font-size: 16px;
+            color: var(--gl-muted);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* ── Main Layout ──────────────────────────────── */
+        .gl-main {
+            flex: 1;
+            max-width: 960px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0 20px 60px;
+        }
+
+        .gl-layout {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+        }
+
+        .gl-col-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .gl-col-right {
+            flex: 0 0 380px;
+            position: sticky;
+            top: 24px;
+        }
+
+        /* ── Cards ─────────────────────────────────────── */
+        .gl-card {
+            background: var(--gl-card);
+            border: 1px solid var(--gl-border);
+            border-radius: var(--gl-radius);
+            padding: 32px 28px;
+        }
+
+        .gl-card + .gl-card {
+            margin-top: 20px;
+        }
+
+        .gl-card-heading {
+            font-family: var(--gl-serif);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gl-dark);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.3;
+        }
+
+        .gl-card-heading svg {
+            color: var(--gl-primary);
+            flex-shrink: 0;
+        }
+
+        /* ── Form Elements ─────────────────────────────── */
+        .gl-field {
+            margin-bottom: 20px;
+        }
+
+        .gl-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .gl-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gl-dark);
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .gl-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--gl-border);
+            border-radius: 10px;
+            background: #f5f5f5;
+            font-size: 15px;
+            font-family: var(--gl-font);
+            color: var(--gl-text);
+            outline: none;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .gl-input::placeholder { color: #aaa; }
+
+        .gl-input:focus {
+            border-color: var(--gl-primary);
+            background: #fff;
+        }
+
+        .gl-input.gl-invalid {
+            border-color: #e74c3c;
+        }
+
+        /* ── Color Pickers ─────────────────────────────── */
+        .gl-color-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .gl-color-row .gl-field {
+            flex: 1;
+        }
+
+        .gl-color-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border: 1px solid var(--gl-border);
+            border-radius: 10px;
+            background: #f5f5f5;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .gl-color-wrap:hover,
+        .gl-color-wrap:focus-within {
+            border-color: var(--gl-primary);
+        }
+
+        .gl-color-preview {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid var(--gl-border);
+            flex-shrink: 0;
+        }
+
+        .gl-color-hex {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gl-text);
+            font-family: "SF Mono", "Fira Code", Consolas, monospace;
+            text-transform: uppercase;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .gl-color-input {
+            position: absolute;
+            width: 0;
+            height: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* ── Slider ────────────────────────────────────── */
+        .gl-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gl-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+        }
+
+        .gl-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gl-primary);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .gl-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--gl-primary);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .gl-slider-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gl-dark);
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* ── Select ────────────────────────────────────── */
+        .gl-select-wrap {
+            position: relative;
+        }
+
+        .gl-select {
+            width: 100%;
+            padding: 12px 40px 12px 16px;
+            border: 1px solid var(--gl-border);
+            border-radius: 10px;
+            background: #f5f5f5;
+            font-size: 15px;
+            font-family: var(--gl-font);
+            color: var(--gl-text);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .gl-select:focus { border-color: var(--gl-primary); }
+
+        .gl-select-arrow {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: #999;
+        }
+
+        /* ── Logo Upload ───────────────────────────────── */
+        .gl-upload-area {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .gl-upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border: 1.5px dashed var(--gl-border);
+            border-radius: 10px;
+            background: #fafafa;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gl-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--gl-font);
+        }
+
+        .gl-upload-btn:hover {
+            border-color: var(--gl-primary);
+            color: var(--gl-primary);
+            background: var(--gl-primary-light);
+        }
+
+        .gl-upload-btn svg { flex-shrink: 0; }
+
+        .gl-logo-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            object-fit: contain;
+            border: 1px solid var(--gl-border);
+            display: none;
+        }
+
+        .gl-logo-remove {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 4px;
+            display: none;
+            line-height: 1;
+        }
+
+        .gl-logo-remove:hover { opacity: 0.7; }
+
+        /* ── Generate Button ───────────────────────────── */
+        .gl-generate {
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 10px;
+            background: var(--gl-primary);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            font-family: var(--gl-font);
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .gl-generate:hover { background: var(--gl-primary-hover); }
+        .gl-generate:active { transform: scale(0.99); }
+
+        /* ── Preview Card ──────────────────────────────── */
+        .gl-preview-card {
+            text-align: center;
+        }
+
+        .gl-canvas-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+            border: 2px dashed var(--gl-border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            padding: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .gl-canvas-wrap.has-qr {
+            border-color: transparent;
+            border-style: solid;
+        }
+
+        .gl-canvas-wrap canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .gl-placeholder-text {
+            color: #bbb;
+            font-size: 15px;
+        }
+
+        .gl-placeholder-text svg {
+            display: block;
+            margin: 0 auto 12px;
+            color: #ddd;
+        }
+
+        .gl-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .gl-action-btn {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1.5px solid var(--gl-border);
+            border-radius: 10px;
+            background: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: var(--gl-font);
+            color: var(--gl-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .gl-action-btn:hover {
+            border-color: var(--gl-primary);
+            color: var(--gl-primary);
+        }
+
+        .gl-action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .gl-action-btn.gl-primary-btn {
+            background: var(--gl-primary);
+            border-color: var(--gl-primary);
+            color: #fff;
+        }
+
+        .gl-action-btn.gl-primary-btn:hover {
+            background: var(--gl-primary-hover);
+        }
+
+        /* Toast */
+        .gl-toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--gl-dark);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .gl-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* ── Error Correction Info ─────────────────────── */
+        .gl-ec-note {
+            font-size: 12px;
+            color: var(--gl-muted);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .gl-ec-note strong {
+            color: var(--gl-primary);
+        }
+
+        /* ── Footer ────────────────────────────────────── */
+        .gl-footer {
+            text-align: center;
+            padding: 24px 20px;
+            font-size: 13px;
+            color: #bbb;
+        }
+
+        .gl-footer a {
+            color: var(--gl-primary);
+            text-decoration: none;
+        }
+
+        /* ── Responsive ────────────────────────────────── */
+        @media (max-width: 800px) {
+            .gl-layout {
+                flex-direction: column;
+            }
+
+            .gl-col-right {
+                flex: 1 1 auto;
+                position: static;
+                width: 100%;
+            }
+
+            .gl-header h1 { font-size: 28px; }
+            .gl-card { padding: 24px 20px; }
+        }
+
+        @media (max-width: 480px) {
+            .gl-color-row { flex-direction: column; gap: 0; }
+            .gl-actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ Header ═══ -->
+    <header class="gl-header">
+        <h1><span>QR Code</span> Generator</h1>
+        <p>Create custom QR codes with your brand colors and logo. Everything runs in your browser — nothing is uploaded.</p>
+    </header>
+
+    <!-- ═══ Main ═══ -->
+    <main class="gl-main">
+        <div class="gl-layout">
+
+            <!-- ─── Left: Controls ─── -->
+            <div class="gl-col-left">
+
+                <!-- URL Input -->
+                <div class="gl-card">
+                    <h2 class="gl-card-heading">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        Enter URL
+                    </h2>
+                    <div class="gl-field">
+                        <input type="url" id="urlInput" class="gl-input" placeholder="https://example.com" autocomplete="off" spellcheck="false">
+                    </div>
+                </div>
+
+                <!-- Customization -->
+                <div class="gl-card">
+                    <h2 class="gl-card-heading">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Customize
+                    </h2>
+
+                    <!-- Colors -->
+                    <div class="gl-color-row">
+                        <div class="gl-field">
+                            <label class="gl-label">Foreground Color</label>
+                            <div class="gl-color-wrap" onclick="this.querySelector('input[type=color]').click()">
+                                <div class="gl-color-preview" id="fgPreview" style="background:#000000;"></div>
+                                <span class="gl-color-hex" id="fgHex">#000000</span>
+                                <input type="color" class="gl-color-input" id="fgColor" value="#000000">
+                            </div>
+                        </div>
+                        <div class="gl-field">
+                            <label class="gl-label">Background Color</label>
+                            <div class="gl-color-wrap" onclick="this.querySelector('input[type=color]').click()">
+                                <div class="gl-color-preview" id="bgPreview" style="background:#ffffff; border-color:#ddd;"></div>
+                                <span class="gl-color-hex" id="bgHex">#FFFFFF</span>
+                                <input type="color" class="gl-color-input" id="bgColor" value="#ffffff">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logo Upload -->
+                    <div class="gl-field">
+                        <label class="gl-label">Center Logo <span style="font-weight:400;color:#aaa;">(optional)</span></label>
+                        <div class="gl-upload-area">
+                            <label class="gl-upload-btn" for="logoInput">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                Upload Image
+                            </label>
+                            <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" style="display:none;">
+                            <img id="logoPreview" class="gl-logo-preview" alt="Logo preview">
+                            <button type="button" id="logoRemove" class="gl-logo-remove" title="Remove logo">&times;</button>
+                        </div>
+                    </div>
+
+                    <!-- Logo Size -->
+                    <div class="gl-field" id="logoSizeField" style="display:none;">
+                        <label class="gl-label">Logo Size</label>
+                        <div class="gl-slider-row">
+                            <input type="range" id="logoSize" class="gl-slider" min="15" max="30" value="20">
+                            <span class="gl-slider-value" id="logoSizeVal">20%</span>
+                        </div>
+                    </div>
+
+                    <!-- QR Size -->
+                    <div class="gl-field">
+                        <label class="gl-label">QR Code Size</label>
+                        <div class="gl-select-wrap">
+                            <select id="qrSize" class="gl-select">
+                                <option value="256">256 &times; 256 px</option>
+                                <option value="512" selected>512 &times; 512 px</option>
+                                <option value="1024">1024 &times; 1024 px</option>
+                            </select>
+                            <svg class="gl-select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Error Correction -->
+                    <div class="gl-field">
+                        <label class="gl-label">Error Correction</label>
+                        <div class="gl-select-wrap">
+                            <select id="ecLevel" class="gl-select">
+                                <option value="L">Low (7%)</option>
+                                <option value="M" selected>Medium (15%)</option>
+                                <option value="Q">Quartile (25%)</option>
+                                <option value="H">High (30%)</option>
+                            </select>
+                            <svg class="gl-select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <p class="gl-ec-note" id="ecNote"></p>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <button type="button" id="generateBtn" class="gl-generate">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                        Generate QR Code
+                    </button>
+                </div>
+            </div>
+
+            <!-- ─── Right: Preview ─── -->
+            <div class="gl-col-right">
+                <div class="gl-card gl-preview-card">
+                    <h2 class="gl-card-heading">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Preview
+                    </h2>
+
+                    <div class="gl-canvas-wrap" id="canvasWrap">
+                        <div class="gl-placeholder-text" id="placeholder">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h.01M18 14h.01"/></svg>
+                            Enter a URL and click Generate
+                        </div>
+                        <canvas id="qrCanvas" style="display:none;"></canvas>
+                    </div>
+
+                    <div class="gl-actions">
+                        <button type="button" id="downloadBtn" class="gl-action-btn gl-primary-btn" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download PNG
+                        </button>
+                        <button type="button" id="copyBtn" class="gl-action-btn" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ═══ Toast ═══ -->
+    <div class="gl-toast" id="toast"></div>
+
+    <!-- ═══ Footer ═══ -->
+    <footer class="gl-footer">
+        GoalLord QR Generator &middot; 100% client-side &middot; No data leaves your browser
+    </footer>
+
+    <!-- ═══ Script ═══ -->
+    <script>
+    (function () {
+        'use strict';
+
+        /* ── DOM refs ─────────────────────── */
+        const urlInput      = document.getElementById('urlInput');
+        const fgColor       = document.getElementById('fgColor');
+        const bgColor       = document.getElementById('bgColor');
+        const fgPreview     = document.getElementById('fgPreview');
+        const bgPreview     = document.getElementById('bgPreview');
+        const fgHex         = document.getElementById('fgHex');
+        const bgHex         = document.getElementById('bgHex');
+        const logoInput     = document.getElementById('logoInput');
+        const logoPreview   = document.getElementById('logoPreview');
+        const logoRemove    = document.getElementById('logoRemove');
+        const logoSizeField = document.getElementById('logoSizeField');
+        const logoSize      = document.getElementById('logoSize');
+        const logoSizeVal   = document.getElementById('logoSizeVal');
+        const qrSize        = document.getElementById('qrSize');
+        const ecLevel       = document.getElementById('ecLevel');
+        const ecNote        = document.getElementById('ecNote');
+        const generateBtn   = document.getElementById('generateBtn');
+        const canvas        = document.getElementById('qrCanvas');
+        const canvasWrap    = document.getElementById('canvasWrap');
+        const placeholder   = document.getElementById('placeholder');
+        const downloadBtn   = document.getElementById('downloadBtn');
+        const copyBtn       = document.getElementById('copyBtn');
+        const toast         = document.getElementById('toast');
+
+        let logoImage = null;  // loaded Image object
+
+        /* ── Color picker sync ────────────── */
+        fgColor.addEventListener('input', function () {
+            fgPreview.style.background = this.value;
+            fgHex.textContent = this.value.toUpperCase();
+        });
+
+        bgColor.addEventListener('input', function () {
+            bgPreview.style.background = this.value;
+            bgHex.textContent = this.value.toUpperCase();
+        });
+
+        /* ── Logo upload ──────────────────── */
+        logoInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const img = new Image();
+                img.onload = function () {
+                    logoImage = img;
+                    logoPreview.src = e.target.result;
+                    logoPreview.style.display = 'block';
+                    logoRemove.style.display  = 'inline';
+                    logoSizeField.style.display = 'block';
+                    updateEcNote();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        logoRemove.addEventListener('click', function () {
+            logoImage = null;
+            logoInput.value = '';
+            logoPreview.style.display   = 'none';
+            logoRemove.style.display    = 'none';
+            logoSizeField.style.display = 'none';
+            updateEcNote();
+        });
+
+        logoSize.addEventListener('input', function () {
+            logoSizeVal.textContent = this.value + '%';
+        });
+
+        /* ── EC note ──────────────────────── */
+        function updateEcNote() {
+            if (logoImage) {
+                ecNote.innerHTML = '<strong>Tip:</strong> With a logo, use <strong>High (H)</strong> error correction for best scan reliability.';
+                if (ecLevel.value === 'L' || ecLevel.value === 'M') {
+                    ecLevel.value = 'H';
+                }
+            } else {
+                ecNote.textContent = '';
+            }
+        }
+
+        ecLevel.addEventListener('change', updateEcNote);
+
+        /* ── URL validation ───────────────── */
+        function isValidURL(str) {
+            try {
+                const url = new URL(str);
+                return url.protocol === 'http:' || url.protocol === 'https:';
+            } catch {
+                return false;
+            }
+        }
+
+        /* ── Generate QR ──────────────────── */
+        generateBtn.addEventListener('click', generate);
+
+        // Allow pressing Enter in URL input
+        urlInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') generate();
+        });
+
+        function generate() {
+            let url = urlInput.value.trim();
+
+            // Auto-prepend https:// if no protocol
+            if (url && !/^https?:\/\//i.test(url)) {
+                url = 'https://' + url;
+                urlInput.value = url;
+            }
+
+            if (!url || !isValidURL(url)) {
+                urlInput.classList.add('gl-invalid');
+                urlInput.focus();
+                showToast('Please enter a valid URL');
+                return;
+            }
+            urlInput.classList.remove('gl-invalid');
+
+            const ecMap = { 'L': 0, 'M': 0, 'Q': 0, 'H': 0 };
+            // qrcode-generator uses typeNumber 0 for auto
+            const ecLetter = ecLevel.value;
+            const typeNumber = 0;
+
+            let qr;
+            try {
+                qr = qrcode(typeNumber, ecLetter);
+                qr.addData(url);
+                qr.make();
+            } catch (err) {
+                showToast('URL too long for this error correction level');
+                return;
+            }
+
+            const size     = parseInt(qrSize.value, 10);
+            const modCount = qr.getModuleCount();
+            const cellSize = size / modCount;
+            const fg       = fgColor.value;
+            const bg       = bgColor.value;
+
+            canvas.width  = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            // Draw background
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw modules
+            ctx.fillStyle = fg;
+            for (let row = 0; row < modCount; row++) {
+                for (let col = 0; col < modCount; col++) {
+                    if (qr.isDark(row, col)) {
+                        ctx.fillRect(
+                            col * cellSize,
+                            row * cellSize,
+                            Math.ceil(cellSize),
+                            Math.ceil(cellSize)
+                        );
+                    }
+                }
+            }
+
+            // Draw logo
+            if (logoImage) {
+                const logoPct   = parseInt(logoSize.value, 10) / 100;
+                const logoW     = size * logoPct;
+                const logoH     = (logoImage.height / logoImage.width) * logoW;
+                const logoX     = (size - logoW) / 2;
+                const logoY     = (size - logoH) / 2;
+                const pad       = logoW * 0.12;
+
+                // White background ring
+                ctx.fillStyle = bg;
+                roundRect(ctx, logoX - pad, logoY - pad, logoW + pad * 2, logoH + pad * 2, pad * 0.6);
+                ctx.fill();
+
+                // Draw logo image
+                ctx.drawImage(logoImage, logoX, logoY, logoW, logoH);
+            }
+
+            // Show canvas, hide placeholder
+            canvas.style.display    = 'block';
+            placeholder.style.display = 'none';
+            canvasWrap.classList.add('has-qr');
+
+            downloadBtn.disabled = false;
+            copyBtn.disabled     = false;
+
+            showToast('QR code generated!');
+        }
+
+        /* ── Rounded rect helper ──────────── */
+        function roundRect(ctx, x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        /* ── Download ─────────────────────── */
+        downloadBtn.addEventListener('click', function () {
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('QR code downloaded!');
+        });
+
+        /* ── Copy to clipboard ────────────── */
+        copyBtn.addEventListener('click', function () {
+            canvas.toBlob(function (blob) {
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]).then(function () {
+                        showToast('Copied to clipboard!');
+                    }).catch(function () {
+                        showToast('Copy failed — try downloading instead');
+                    });
+                } else {
+                    showToast('Clipboard API not supported — please download');
+                }
+            }, 'image/png');
+        });
+
+        /* ── Toast ────────────────────────── */
+        let toastTimer;
+        function showToast(msg) {
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        /* ── Remove invalid on input ──────── */
+        urlInput.addEventListener('input', function () {
+            this.classList.remove('gl-invalid');
+        });
+
+    })();
+    </script>
+
+</body>
+</html>
